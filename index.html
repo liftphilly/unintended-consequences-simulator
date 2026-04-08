@@ -8,6 +8,15 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="robots" content="noindex">
 
+<!-- Open Graph -->
+<meta property="og:title" content="Unintended Consequences Simulator — LIFT Philly">
+<meta property="og:description" content="Would S-Corp owners reclassify as LLCs under the LIFT Act? Run the numbers yourself with this interactive tax comparison tool.">
+<meta property="og:image" content="https://liftphilly.org/og-simulator.png">
+<meta property="og:url" content="https://liftphilly.org/simulator">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://liftphilly.org/og-simulator.png">
+
 <!-- Privacy-friendly analytics by Plausible -->
 <script async src="https://plausible.io/js/pa-bEPTzuGWc7ZFrRQnG7Cg6.js"></script>
 <script>
@@ -89,169 +98,8 @@
   }
   .nav-home:hover { color: var(--white); }
 
-  .nav-links {
-    display: flex;
-    gap: 32px;
-    list-style: none;
-  }
-
-  .nav-links a {
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-
-  .nav-links a:hover { color: var(--gold); }
-  .nav-links a.active { color: var(--gold); }
-
-  .nav-toggle {
-    display: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-  }
-
-  .nav-toggle span {
-    display: block;
-    width: 24px;
-    height: 2px;
-    background: var(--white);
-    margin: 5px 0;
-    transition: 0.3s;
-  }
-
-  /* Translate dropdown */
-  .nav-translate { position: relative; }
-
-  .nav-translate-btn {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 6px;
-    padding: 6px 12px;
-    color: rgba(255,255,255,0.9);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-  }
-
-  .nav-translate-btn:hover { border-color: var(--gold); color: var(--gold); }
-  .nav-translate-btn svg { width: 16px; height: 16px; }
-  .nav-translate-btn .chevron { width: 12px; height: 12px; transition: transform 0.2s; }
-  .nav-translate.open .nav-translate-btn .chevron { transform: rotate(180deg); }
-
-  .nav-translate-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 8px;
-    background: var(--navy-light);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 8px;
-    padding: 12px 0;
-    min-width: 220px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: all 0.2s;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-    z-index: 1000;
-  }
-
-  .nav-translate.open .nav-translate-dropdown {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .nav-translate-dropdown .lang-list { max-height: 280px; overflow-y: auto; }
-
-  .nav-translate-dropdown button {
-    display: block;
-    width: 100%;
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.8);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .nav-translate-dropdown button:hover { background: rgba(251,191,36,0.15); color: var(--gold); }
-
-  .nav-translate-dropdown .help-divider { border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0; }
-
-  .nav-translate-dropdown .help-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    color: var(--gold);
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-
-  .nav-translate-dropdown .help-link:hover { opacity: 0.8; }
-  .nav-translate-dropdown .help-link svg { width: 14px; height: 14px; }
-
-  #google_translate_element { display: none !important; }
-  .goog-te-banner-frame { display: none !important; }
-
   @media (max-width: 768px) {
     .nav .container { flex-wrap: wrap; }
-
-    .nav-links {
-      display: none;
-      position: absolute;
-      top: 100%;
-      right: 16px;
-      left: auto;
-      background: var(--navy-light);
-      flex-direction: column;
-      gap: 0;
-      padding: 12px 0;
-      margin-top: 8px;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      min-width: 200px;
-      z-index: 1000;
-    }
-
-    .nav-links.open { display: flex; }
-
-    .nav-links li { padding: 0; }
-
-    .nav-links a {
-      display: block;
-      padding: 10px 16px;
-      color: rgba(255,255,255,0.8);
-      font-size: 0.9rem;
-      transition: all 0.15s;
-    }
-
-    .nav-links a:hover, .nav-links a.active { background: rgba(251,191,36,0.15); color: var(--gold); }
-
-    .nav-toggle { display: block; }
-
-    .nav-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-    .nav-toggle.open span:nth-child(2) { opacity: 0; }
-    .nav-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
-
-    .nav-toggle { order: 3; margin-left: 8px; }
-    .nav-translate { order: 2; margin-left: auto; }
-    .nav-translate-btn span { display: none; }
-    .nav-translate-btn { padding: 6px 8px; }
   }
 
   /* ── Container ── */
@@ -1056,36 +904,6 @@
 </footer>
 
 <script>
-// ── Nav functions (matches liftphilly.org) ──
-function toggleNav() {
-  document.querySelector('.nav-toggle').classList.toggle('open');
-  document.querySelector('.nav-links').classList.toggle('open');
-}
-
-function toggleTranslateDropdown() {
-  document.querySelector('.nav-translate').classList.toggle('open');
-}
-
-document.addEventListener('click', function(e) {
-  var translateDropdown = document.querySelector('.nav-translate');
-  if (translateDropdown && !translateDropdown.contains(e.target)) {
-    translateDropdown.classList.remove('open');
-  }
-});
-
-function translatePage(lang) {
-  // Google Translate integration
-  var frame = document.querySelector('.goog-te-combo');
-  if (frame) {
-    frame.value = lang;
-    frame.dispatchEvent(new Event('change'));
-  } else {
-    // Fallback: open Google Translate in new tab
-    window.open('https://translate.google.com/translate?sl=en&tl=' + lang + '&u=' + encodeURIComponent(window.location.href), '_blank');
-  }
-  document.querySelector('.nav-translate').classList.remove('open');
-}
-
 // ============================================================
 // Tax Engine — generated from scripts/lift-philly-entity-model.ts
 // Single source of truth. Do not edit calc functions here.
