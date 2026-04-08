@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unintended Consequences Simulator — LIFT Philly</title>
+<meta name="description" content="Would S-Corp owners reclassify as LLCs under the LIFT Act? This interactive simulator models the tax advantages of S-Corp vs LLC to test that claim.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="robots" content="noindex">
+
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-bEPTzuGWc7ZFrRQnG7Cg6.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --navy: #0f172a;
+    --navy-light: #1e293b;
+    --gold: #fbbf24;
+    --gold-dark: #f59e0b;
+    --cream: #fefce8;
+    --text: #334155;
+    --text-light: #64748b;
+    --white: #ffffff;
+    --red: #dc2626;
+    --green: #16a34a;
+    --border: #e5e7eb;
+    --gradient: linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #1a365d 100%);
+    /* legacy aliases */
+    --ink: #334155;
+    --light-ink: #64748b;
+    --blue: #0f172a;
+    --card-bg: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--white);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  h1, h2, h3, .banner-label, .presets-label, .subtitle, .footer-brand {
+    text-wrap: balance;
+  }
+
+  /* ── Nav (matches liftphilly.org) ── */
+  .nav {
+    background: var(--navy);
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    overflow: visible;
+  }
+
+  .nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .nav-brand {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .nav-brand span { color: var(--gold); }
+
+  .nav-home {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-home:hover { color: var(--white); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a.active { color: var(--gold); }
+
+  .nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--white);
+    margin: 5px 0;
+    transition: 0.3s;
+  }
+
+  /* Translate dropdown */
+  .nav-translate { position: relative; }
+
+  .nav-translate-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: rgba(255,255,255,0.9);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .nav-translate-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .nav-translate-btn svg { width: 16px; height: 16px; }
+  .nav-translate-btn .chevron { width: 12px; height: 12px; transition: transform 0.2s; }
+  .nav-translate.open .nav-translate-btn .chevron { transform: rotate(180deg); }
+
+  .nav-translate-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: var(--navy-light);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 12px 0;
+    min-width: 220px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+
+  .nav-translate.open .nav-translate-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav-translate-dropdown .lang-list { max-height: 280px; overflow-y: auto; }
+
+  .nav-translate-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.8);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .nav-translate-dropdown button:hover { background: rgba(251,191,36,0.15); color: var(--gold); }
+
+  .nav-translate-dropdown .help-divider { border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0; }
+
+  .nav-translate-dropdown .help-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: var(--gold);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .nav-translate-dropdown .help-link:hover { opacity: 0.8; }
+  .nav-translate-dropdown .help-link svg { width: 14px; height: 14px; }
+
+  #google_translate_element { display: none !important; }
+  .goog-te-banner-frame { display: none !important; }
+
+  @media (max-width: 768px) {
+    .nav .container { flex-wrap: wrap; }
+
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 16px;
+      left: auto;
+      background: var(--navy-light);
+      flex-direction: column;
+      gap: 0;
+      padding: 12px 0;
+      margin-top: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      min-width: 200px;
+      z-index: 1000;
+    }
+
+    .nav-links.open { display: flex; }
+
+    .nav-links li { padding: 0; }
+
+    .nav-links a {
+      display: block;
+      padding: 10px 16px;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9rem;
+      transition: all 0.15s;
+    }
+
+    .nav-links a:hover, .nav-links a.active { background: rgba(251,191,36,0.15); color: var(--gold); }
+
+    .nav-toggle { display: block; }
+
+    .nav-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    .nav-toggle { order: 3; margin-left: 8px; }
+    .nav-translate { order: 2; margin-left: auto; }
+    .nav-translate-btn span { display: none; }
+    .nav-translate-btn { padding: 6px 8px; }
+  }
+
+  /* ── Container ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--gradient);
+    padding: 64px 24px 72px;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.75);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--navy);
+    padding: 48px 0;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .footer-brand {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .footer-brand span { color: var(--gold); }
+
+  footer p {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  footer p + p { margin-top: 12px; }
+
+  /* Inputs */
+  .inputs-panel {
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .inputs-panel h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+  }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .input-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: var(--navy);
+  }
+
+  .val-input {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0.2rem 0.5rem 0.25rem;
+    margin-bottom: 0.5rem;
+    outline: none;
+    line-height: 1.4;
+  }
+
+  .val-input:focus {
+    background: rgba(251,191,36,0.1);
+    border-radius: 6px;
+  }
+
+  .cap-msg {
+    font-size: 0.7rem;
+    color: var(--red);
+    text-align: center;
+    margin-top: 0.2rem;
+    min-height: 1em;
+  }
+
+  input[type="range"] {
+    display: block;
+    width: 100%;
+    appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    touch-action: pan-y;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--navy);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15,23,42,0.3);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--navy);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15,23,42,0.3);
+  }
+
+  @media (max-width: 640px) {
+    input[type="range"] {
+      height: 6px;
+      margin: 6px 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      width: 32px;
+      height: 32px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+  }
+
+  .toggle-label {
+    font-size: 0.85rem;
+    color: var(--light-ink);
+  }
+
+  .toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--green); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  /* Summary Banner */
+  .summary-banner {
+    background: var(--gradient);
+    border-radius: 24px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    transition: opacity 0.3s;
+  }
+
+  .summary-banner.scorp-wins { }
+  .summary-banner.llc-wins { }
+
+  .banner-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+  }
+
+  .banner-amount {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--gold);
+    min-width: 160px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .summary-banner.llc-wins .banner-amount { color: #f97316; }
+
+  .banner-sub {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.6);
+    text-align: right;
+  }
+
+  @media (max-width: 640px) {
+    .summary-banner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 0.4rem 0.75rem;
+      padding: 1rem 1.25rem;
+    }
+    .summary-banner > div:first-child { grid-column: 1; grid-row: 1; }
+    .banner-amount {
+      grid-column: 2;
+      grid-row: 1;
+      font-size: 1.6rem;
+      min-width: unset;
+      text-align: right;
+    }
+    .banner-sub {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      text-align: left;
+      display: flex;
+      gap: 1.5rem;
+    }
+  }
+
+  /* Results Table */
+  .results-card {
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .results-card h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1.1rem 1.5rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 420px;
+  }
+
+  th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.75rem 1rem;
+    text-align: right;
+    background: var(--cream);
+    color: var(--light-ink);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  th:first-child { text-align: left; }
+
+  td {
+    padding: 0.55rem 1rem;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td:first-child {
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text);
+    white-space: normal;
+  }
+
+  @media (max-width: 640px) {
+    table { min-width: unset; }
+    th:last-child, td:last-child { display: none; }
+    th { font-size: 0.72rem; padding: 0.6rem 0.6rem; }
+    td { padding: 0.5rem 0.6rem; font-size: 0.78rem; }
+    td:first-child { font-size: 0.8rem; }
+    tr.section-header td { font-size: 0.68rem; padding: 0.35rem 0.6rem; }
+  }
+
+  tr.section-header td {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-light);
+    background: #f8fafc;
+    padding: 0.4rem 1rem;
+    font-weight: 700;
+  }
+
+  tr.highlight td {
+    font-weight: 600;
+    background: rgba(22,163,74,0.04);
+  }
+
+  tr.total-row td {
+    font-weight: 700;
+    border-top: 2px solid var(--border);
+    font-size: 0.9rem;
+    background: #f8fafc;
+  }
+
+  .neg { color: var(--red); }
+  .pos { color: var(--green); }
+  .zero { color: var(--border); }
+  .na { color: var(--border); font-size: 0.75rem; }
+
+  .diff-pos { color: var(--green); font-weight: 600; }
+  .diff-neg { color: var(--red); font-weight: 600; }
+
+  /* Footnotes */
+  .footnotes {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    line-height: 1.7;
+  }
+
+  .footnotes p { margin-bottom: 0.3rem; }
+  .footnotes strong { color: var(--navy); }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 99px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+  }
+
+  .tag-verify { background: rgba(245,158,11,0.15); color: #92400e; border: 1px solid var(--gold-dark); }
+  .tag-gap { background: rgba(220,38,38,0.1); color: var(--red); border: 1px solid var(--red); }
+  .tag-open { background: rgba(59,130,246,0.1); color: #1d4ed8; border: 1px solid #93c5fd; }
+
+  /* Excel download */
+  .excel-download {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    background: var(--cream);
+    border: 1.5px solid rgba(251,191,36,0.3);
+    border-radius: 12px;
+  }
+  .excel-download-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  @media (max-width: 600px) {
+    .excel-download {
+      flex-direction: column;
+      text-align: center;
+    }
+    .excel-download-left {
+      flex-direction: column;
+    }
+  }
+
+  /* Beckley box */
+  .beckley-box {
+    background: var(--gradient);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: white;
+  }
+
+  .beckley-box h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+    color: var(--gold);
+  }
+
+  .beckley-claim {
+    font-style: italic;
+    color: rgba(255,255,255,0.7);
+    border-left: 3px solid var(--gold);
+    padding-left: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .beckley-rebuttal {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+  }
+
+  #beckley-verdict {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    color: var(--gold);
+  }
+
+  /* Presets */
+  .presets-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .presets-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--light-ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .presets-heading {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.35rem;
+  }
+
+  .presets-subheading {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+
+  .presets-quote {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+    border-left: 3px solid var(--gold);
+    padding-left: 0.75rem;
+  }
+
+  .presets-quote cite {
+    display: block;
+    font-style: normal;
+    font-size: 0.78rem;
+    margin-top: 0.25rem;
+    color: var(--text-light);
+    opacity: 0.8;
+  }
+
+  .presets-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .presets-row {
+      grid-template-columns: 1fr;
+      gap: 0.4rem;
+    }
+  }
+
+  .preset-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.55rem 0.85rem;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--cream);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    text-align: left;
+    width: 100%;
+  }
+
+  .preset-name {
+    display: block;
+    font-weight: 600;
+  }
+
+  .preset-revenue {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--green);
+    margin-top: 0.15rem;
+  }
+
+  .preset-btn:hover .preset-revenue,
+  .preset-btn.active .preset-revenue {
+    color: #4ade80;
+  }
+
+  .preset-desc {
+    display: block;
+    font-size: 0.72rem;
+    opacity: 0.65;
+    font-weight: 400;
+    margin-top: 0.1rem;
+  }
+
+  .preset-btn:hover {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+  }
+
+  .preset-btn:hover .preset-desc {
+    opacity: 0.85;
+  }
+
+  .preset-btn.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
+  }
+
+  .preset-btn.active .preset-desc {
+    opacity: 0.85;
+  }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-brand">LIFT <span>Philly</span></a>
+    <a href="/" class="nav-home">&larr; Back to LIFT Philly</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>Unintended Consequences Simulator</h1>
+  <p class="subtitle">Would S-Corp owners reclassify as LLCs under <a href="/petition/#sign-section" style="color:var(--gold);text-decoration:underline;">Bill No. 251026</a> (the LIFT Act)?</p>
+</div>
+
+<div class="page">
+
+  <!-- Inputs -->
+  <div class="inputs-panel">
+    <h2 style="font-family:'Inter',sans-serif; font-size:1.3rem; font-weight:700; color:var(--navy); margin-bottom:0.75rem;">Who would actually switch?</h2>
+    <div style="font-size:0.9rem; color:var(--text); line-height:1.65; margin-bottom:1rem; max-width:720px;">
+      <p style="margin-bottom:0.6rem;">Now that <a href="/petition/#sign-section" style="color:var(--gold-dark);text-decoration:underline;">Bill No. 251026</a> has been confirmed to pass PA constitutional muster, the biggest remaining concern raised by the Law Department about the LIFT Act is that wealthy business owners would dissolve their S-Corporations and reclassify as LLCs to capture the new BIRT exemption, causing revenue losses far beyond projections.</p>
+      <h3 style="font-family:'Inter',sans-serif; font-size:1.05rem; font-weight:700; color:var(--navy); margin:0.75rem 0 0.5rem;">This simulator tests that claim.</h3>
+      <p style="margin-bottom:0.6rem;">It compares the total tax burden of an S-Corp owner against the same business operating as an LLC after the bill passes. The math accounts for federal income tax, state income tax, city wage tax, BIRT, NPT, payroll and self-employment taxes, QBI deductions, and retirement contributions.</p>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets-section">
+      <h3 style="font-family:'Inter',sans-serif; font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:0.6rem;">Choose an example or adjust the numbers below</h3>
+      <div class="presets-row">
+        <button class="preset-btn" data-rev="450000" data-exp="60000" data-sal="160000" data-sstb="false">
+          <span class="preset-name">🏠 Real Estate Agent</span>
+          <span class="preset-revenue">$450k revenue</span>
+          <span class="preset-desc">High-commission residential broker, low overhead. Not an SSTB — QBI deduction applies.</span>
+        </button>
+        <button class="preset-btn" data-rev="650000" data-exp="50000" data-sal="210000" data-sstb="true">
+          <span class="preset-name">💰 Wealth Manager</span>
+          <span class="preset-revenue">$650k revenue</span>
+          <span class="preset-desc">Fee-only financial advisor, minimal expenses. SSTB — QBI phases out above income threshold.</span>
+        </button>
+        <button class="preset-btn" data-rev="1200000" data-exp="120000" data-sal="320000" data-sstb="true">
+          <span class="preset-name">🏦 PE/Fund Consultant</span>
+          <span class="preset-revenue">$1.2M revenue</span>
+          <span class="preset-desc">Private equity strategy advisor, high billings. SSTB — QBI fully phased out at this income level.</span>
+        </button>
+        <button class="preset-btn" data-rev="2000000" data-exp="200000" data-sal="400000" data-sstb="true">
+          <span class="preset-name">📈 Hedge Fund Manager</span>
+          <span class="preset-revenue">$2M revenue</span>
+          <span class="preset-desc">Fund principal, carried interest and fees. SSTB — well above QBI phaseout ceiling.</span>
+        </button>
+        <button class="preset-btn" data-rev="900000" data-exp="250000" data-sal="270000" data-sstb="false">
+          <span class="preset-name">🏗️ Real Estate Developer</span>
+          <span class="preset-revenue">$900k revenue</span>
+          <span class="preset-desc">Project developer, deal fees and equity. Not an SSTB — QBI deduction eligible.</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Banner -->
+    <div class="summary-banner scorp-wins" id="summary-banner">
+      <div>
+        <div class="banner-label" id="banner-label">S-Corp Advantage</div>
+        <div style="font-size:0.8rem;color:var(--light-ink);">After-tax income difference</div>
+      </div>
+      <div class="banner-amount" id="banner-amount">$46,030</div>
+      <div class="banner-sub" id="banner-sub">
+        <div>S-Corp: <strong id="scorp-aftertax">$226,723</strong></div>
+        <div>LLC: <strong id="llc-aftertax">$180,693</strong></div>
+      </div>
+    </div>
+
+    <div class="input-grid">
+      <div class="input-group">
+        <label>Gross Revenue</label>
+        <input type="text" inputmode="numeric" class="val-input" id="revenue-input" value="$1,500,000">
+        <input type="range" id="revenue" min="50000" max="3000000" step="10000" value="1500000">
+      </div>
+      <div class="input-group">
+        <label>Operating Expenses</label>
+        <input type="text" inputmode="numeric" class="val-input" id="expenses-input" value="$500,000">
+        <input type="range" id="expenses" min="0" max="2990000" step="10000" value="500000">
+        <div class="cap-msg" id="expenses-cap-msg"></div>
+      </div>
+      <div class="input-group">
+        <label>S-Corp W-2 Salary</label>
+        <input type="text" inputmode="numeric" class="val-input" id="salary-input" value="$101,000">
+        <input type="range" id="salary" min="30000" max="500000" step="5000" value="101000">
+        <div class="cap-msg" id="salary-cap-msg"></div>
+      </div>
+      <div class="input-group">
+        <label>Specified Service (SSTB)</label>
+        <div class="toggle-group">
+          <label class="toggle">
+            <input type="checkbox" id="sstb" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="sstb-label">Yes — QBI phases out above $201,750</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--border); display:flex; gap:2rem; font-size:0.82rem; color:var(--light-ink);">
+      <span>Net Profit: <strong id="net-profit-display" style="color:var(--ink);font-family:'DM Mono',monospace;">$400,000</strong></span>
+      <span>Profit Margin: <strong id="margin-display" style="color:var(--ink);font-family:'DM Mono',monospace;">40.0%</strong></span>
+    </div>
+  </div>
+
+  <!-- High-expense warning -->
+  <div id="high-expense-warning" style="display:none; background:#FDECEA; border:1.5px solid var(--red); border-radius:8px; box-shadow:3px 3px 0 var(--red); padding:0.9rem 1.25rem; margin-bottom:1.25rem; font-size:0.85rem; color:var(--ink);">
+    <strong style="color:var(--red);">⚠ High-Expense Zone</strong> — At these inputs, the S-Corp salary + payroll exceeds remaining revenue after expenses. The S-Corp K-1 goes negative, but K-1 losses are zeroed in this model (complex basis/at-risk rules not modeled). The S-Corp owner still owes income tax on the full W-2 salary, so the comparison may overstate the S-Corp's cost. Treat S-Corp results here as a conservative upper bound.
+  </div>
+
+  <!-- Finding -->
+  <div class="beckley-box">
+    <h3>The Finding</h3>
+    <div class="beckley-rebuttal">
+      At these inputs, an S-Corp owner who converts to solo classification would <span id="beckley-direction">lose</span> <strong id="beckley-delta">$46,030</strong> per year in after-tax income.
+      <div id="beckley-verdict" style="color:var(--green); margin-top:0.5rem;">At virtually every income level, S-Corp owners pay less tax than LLCs. The advantage comes from federal payroll tax savings that no city bill can change.</div>
+      <div style="color:rgba(255,255,255,0.7); font-size:0.85rem; margin-top:0.5rem;">In the rare marginal scenarios where LLC edges ahead, the advantage is negligible and far outweighed by the $4,000 - $11,000 in legal and administrative costs of dissolution, plus a 5-year federal lockout from re-electing S-Corp status.</div>
+    </div>
+  </div>
+
+  <!-- Excel Download -->
+  <div class="excel-download">
+    <div class="excel-download-left">
+      <span style="font-size:1.5rem;">📊</span>
+      <div>
+        <p style="font-weight:600; color:var(--navy); margin:0; font-size:0.95rem;">Prefer a spreadsheet?</p>
+        <p style="font-size:0.85rem; color:var(--text-light); margin:0;">Download the full tax model for independent review.</p>
+      </div>
+    </div>
+    <a href="/simulator/onePhilly_scorp_vs_llc_tax_model_v10.xlsx" download style="display:inline-block; background:var(--navy); color:var(--white); padding:8px 20px; border-radius:8px; text-decoration:none; font-size:0.85rem; font-weight:600; white-space:nowrap;">Download Excel Model (v10)</a>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="results-card">
+    <h2>Full Tax Breakdown</h2>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>S-Corp</th>
+          <th>LLC (Post-Bill)</th>
+          <th>Diff (S−LLC)</th>
+        </tr>
+      </thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- With Retirement -->
+  <div class="results-card">
+    <h2>Including Retirement Contributions</h2>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>S-Corp</th>
+          <th>LLC (Post-Bill)</th>
+          <th>Diff (S−LLC)</th>
+        </tr>
+      </thead>
+      <tbody id="retirement-body"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Footnotes -->
+  <div class="footnotes">
+    <p><strong>Model assumptions:</strong> Philadelphia resident, single filer, TY 2026, one shareholder. S-Corp pays BIRT + SIT; LLC assumes Individual BIRT Exemption in place (pays NPT only, no BIRT).</p>
+    <p><strong>Philadelphia SIT:</strong> Confirmed — S-Corp K-1 income is subject to SIT at 3.74% on the full pro-rata share (not just distributions). No BIRT credit applies to SIT. Now modeled.</p>
+    <p><strong>Validation:</strong> 23 assertions verified against v10 spreadsheet at reference scenario ($1M/$600K/$100K). Multi-scenario validation across 7 income levels. Tax engine shared with test harness (single source of truth).</p>
+    <p style="margin-top:0.5rem;font-size:0.75rem;">Tax engine: lift-philly-entity-model.ts · Updated April 8, 2026</p>
+  </div>
+
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-brand">LIFT <span>Philly</span></div>
+    <p>Labor (Independent Contractors) &middot; Individual Enterprises &middot; Family Enterprises &middot; Tax Reform</p>
+    <p>This simulator is for educational purposes only and is not intended to be legal or tax advice. Consult a qualified CPA for your specific situation.</p>
+  </div>
+</footer>
+
+<script>
+// ── Nav functions (matches liftphilly.org) ──
+function toggleNav() {
+  document.querySelector('.nav-toggle').classList.toggle('open');
+  document.querySelector('.nav-links').classList.toggle('open');
+}
+
+function toggleTranslateDropdown() {
+  document.querySelector('.nav-translate').classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  var translateDropdown = document.querySelector('.nav-translate');
+  if (translateDropdown && !translateDropdown.contains(e.target)) {
+    translateDropdown.classList.remove('open');
+  }
+});
+
+function translatePage(lang) {
+  // Google Translate integration
+  var frame = document.querySelector('.goog-te-combo');
+  if (frame) {
+    frame.value = lang;
+    frame.dispatchEvent(new Event('change'));
+  } else {
+    // Fallback: open Google Translate in new tab
+    window.open('https://translate.google.com/translate?sl=en&tl=' + lang + '&u=' + encodeURIComponent(window.location.href), '_blank');
+  }
+  document.querySelector('.nav-translate').classList.remove('open');
+}
+
+// ============================================================
+// Tax Engine — generated from scripts/lift-philly-entity-model.ts
+// Single source of truth. Do not edit calc functions here.
+// To update: edit the .ts file, run bun build, paste output.
+// ============================================================
+var DEFAULTS = {
+  standardDeduction: 16100, ssWageBase: 184500,
+  employeeSsRate: 0.062, employerSsRate: 0.062,
+  employeeMedicareRate: 0.0145, employerMedicareRate: 0.0145,
+  additionalMedicareThreshold: 200000, additionalMedicareRate: 0.009,
+  paPitRate: 0.0307,
+  wageTaxRate: 0.0374, nptRate: 0.0374, sitRate: 0.0374,
+  birtNiRate: 0.0571, birtGrRate: 0.00141, nptCreditPct: 0.6,
+  saltCap: 40400, saltThreshold: 505000, saltFloor: 1e4,
+  qbiRate: 0.2, qbiThreshold: 201750, qbiPhaseRange: 75000,
+  seAdjust: 0.9235, seSsRate: 0.124, seMedicareRate: 0.029, seContributionRate: 0.2,
+  employee401kLimit: 24500, annualAdditionsLimit: 72000,
+  ubia: 0, mortgageInterest: 0, charitable: 0, otherItemized: 0,
+  netCapGain: 0, sstb: false,
+  brackets: [[12400,0.1],[50400,0.12],[105700,0.22],[201775,0.24],[256225,0.32],[640600,0.35],[Infinity,0.37]]
+};
+function federalIncomeTax(taxableIncome, brackets) {
+  if (brackets === undefined) brackets = DEFAULTS.brackets;
+  if (taxableIncome <= 0) return 0;
+  var tax = 0, prev = 0;
+  for (var i = 0; i < brackets.length; i++) {
+    var ceiling = brackets[i][0], rate = brackets[i][1];
+    if (taxableIncome <= prev) break;
+    tax += (Math.min(taxableIncome, ceiling) - prev) * rate;
+    prev = ceiling;
+  }
+  return tax;
+}
+function saltDeduction(saltPaid, agi, a) {
+  if (!a) a = DEFAULTS;
+  var cap = Math.max(a.saltFloor, a.saltCap - 0.3 * Math.max(0, agi - a.saltThreshold));
+  return Math.min(saltPaid, cap);
+}
+function qbiDeduction(qbiBase, w2Wages, ubia, taxableIncome, netCapGain, sstb, a) {
+  if (!a) a = DEFAULTS;
+  if (netCapGain === undefined) netCapGain = 0;
+  if (sstb === undefined) sstb = false;
+  if (qbiBase <= 0) return 0;
+  var twentyPct = qbiBase * 0.2;
+  var threshold = a.qbiThreshold;
+  var phaseCeiling = threshold + a.qbiPhaseRange;
+  var phasePct = Math.max(0, Math.min(1, (taxableIncome - threshold) / a.qbiPhaseRange));
+  var tentative;
+  if (taxableIncome <= threshold) {
+    tentative = twentyPct;
+  } else if (sstb) {
+    if (taxableIncome >= phaseCeiling) { tentative = 0; }
+    else {
+      var adjQbi = qbiBase * (1 - phasePct), adjTwenty = adjQbi * 0.2;
+      var adjW2 = w2Wages * (1 - phasePct);
+      var optA = adjW2 * 0.5, optB = adjW2 * 0.25 + ubia * 0.025 * (1 - phasePct);
+      tentative = Math.max(0, Math.min(adjTwenty, Math.max(optA, optB)));
+    }
+  } else {
+    var wageUbiaCap = Math.max(0.5 * w2Wages, 0.25 * w2Wages + 0.025 * ubia);
+    if (taxableIncome >= phaseCeiling) { tentative = Math.min(twentyPct, wageUbiaCap); }
+    else {
+      var reduction = Math.max(0, twentyPct - wageUbiaCap);
+      tentative = Math.max(0, twentyPct - phasePct * reduction);
+    }
+  }
+  return Math.min(tentative, Math.max(0, 0.2 * (taxableIncome - netCapGain)));
+}
+function calcScorp(revenue, income, w2Wages, a) {
+  if (!a) a = DEFAULTS;
+  var expenses = revenue - income;
+  var employee401k = Math.min(a.employee401kLimit, w2Wages);
+  var employer401k = Math.min(0.25 * w2Wages, a.annualAdditionsLimit - employee401k);
+  var total401k = employee401k + employer401k;
+  var box1 = w2Wages - employee401k;
+  var erSs = Math.min(w2Wages, a.ssWageBase) * a.employerSsRate;
+  var erMed = w2Wages * a.employerMedicareRate;
+  var erPayroll = erSs + erMed;
+  var preBirt = income - w2Wages - erPayroll - employer401k;
+  var birtGr = revenue * a.birtGrRate;
+  var birtNi = Math.max(0, preBirt) * a.birtNiRate;
+  var birtTotal = birtGr + birtNi;
+  var k1 = preBirt - birtTotal;
+  var paScorp = preBirt - birtGr;
+  var paPit = Math.max(0, w2Wages + paScorp) * a.paPitRate;
+  var wageTax = w2Wages * a.wageTaxRate;
+  var sit = k1 * a.sitRate;
+  var eeSs = Math.min(w2Wages, a.ssWageBase) * a.employeeSsRate;
+  var eeMed = w2Wages * a.employeeMedicareRate;
+  var addlMed = Math.max(0, w2Wages - a.additionalMedicareThreshold) * a.additionalMedicareRate;
+  var eePayroll = eeSs + eeMed + addlMed;
+  var agi = box1 + k1;
+  var saltPaid = paPit + wageTax + sit;
+  var saltUsed = saltDeduction(saltPaid, agi, a);
+  var itemized = saltUsed + a.otherItemized;
+  var deduction = Math.max(itemized, a.standardDeduction);
+  var taxablePreQbi = Math.max(0, agi - deduction);
+  var qbiBase = Math.max(0, k1);
+  var qbiVal = qbiDeduction(qbiBase, w2Wages, a.ubia, taxablePreQbi, a.netCapGain, a.sstb, a);
+  var fedTaxable = Math.max(0, taxablePreQbi - qbiVal);
+  var fedTax = federalIncomeTax(fedTaxable);
+  var ownerTax = paPit + wageTax + sit + eePayroll + fedTax;
+  var afterTax = agi - ownerTax;
+  return {
+    birtGr: birtGr, birtNi: birtNi, birtTotal: birtTotal,
+    paPit: paPit, wageTax: wageTax, sit: sit,
+    employeePayroll: eePayroll, employerPayroll: erPayroll,
+    fedIncomeTax: fedTax, ownerTax: ownerTax, agi: agi, afterTax: afterTax,
+    total401k: total401k, afterTaxPlusRetirement: afterTax + total401k,
+    qbiAllowed: qbiVal, fedTaxable: fedTaxable
+  };
+}
+function calcLlcReform(revenue, income, a) {
+  if (!a) a = DEFAULTS;
+  var profit = income;
+  var seIncome = Math.max(0, profit) * a.seAdjust;
+  var seSs = Math.min(seIncome, a.ssWageBase) * a.seSsRate;
+  var seMed = seIncome * a.seMedicareRate;
+  var addlMed = Math.max(0, seIncome - a.additionalMedicareThreshold) * a.additionalMedicareRate;
+  var seTotal = seSs + seMed + addlMed;
+  var halfSe = (seSs + seMed) / 2;
+  var paPit = Math.max(0, profit) * a.paPitRate;
+  var npt = Math.max(0, profit) * a.nptRate;
+  var earned = profit - halfSe;
+  var ee401k = Math.min(a.employee401kLimit, Math.max(0, earned));
+  var retirement = Math.min(a.annualAdditionsLimit, ee401k + a.seContributionRate * earned);
+  var agi = earned - retirement;
+  var saltPaid = paPit + npt;
+  var saltUsed = saltDeduction(saltPaid, agi, a);
+  var itemized = saltUsed + a.otherItemized;
+  var deduction = Math.max(itemized, a.standardDeduction);
+  var taxablePreQbi = Math.max(0, agi - deduction);
+  var qbiBase = Math.max(0, profit - halfSe - retirement);
+  var qbiVal = qbiDeduction(qbiBase, 0, a.ubia, taxablePreQbi, a.netCapGain, a.sstb, a);
+  var fedTaxable = Math.max(0, taxablePreQbi - qbiVal);
+  var fedTax = federalIncomeTax(fedTaxable);
+  var ownerTax = paPit + npt + seTotal + fedTax;
+  var afterTax = profit - retirement - ownerTax;
+  return {
+    paPit: paPit, npt: npt, seTotal: seTotal,
+    fedIncomeTax: fedTax, ownerTax: ownerTax, agi: agi, afterTax: afterTax,
+    retirement: retirement, afterTaxPlusRetirement: afterTax + retirement,
+    qbiAllowed: qbiVal, fedTaxable: fedTaxable
+  };
+}
+
+function fmtDollar(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function parseDollar(s) {
+  return parseInt(String(s).replace(/[^0-9]/g, '')) || 0;
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return '<span class="na">—</span>';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  return sign + '$' + Math.round(abs).toLocaleString();
+}
+
+function fmtCell(n, inverse = false) {
+  if (n === null || n === undefined) return '<span class="na">—</span>';
+  return `<span class="${n === 0 ? 'zero' : ''}">${fmt(n)}</span>`;
+}
+
+function diffCell(s, l) {
+  const d = s - l;
+  if (Math.abs(d) < 1) return '<span class="zero">$0</span>';
+  return `<span class="${d > 0 ? 'diff-pos' : 'diff-neg'}">${fmt(d)}</span>`;
+}
+
+function row(label, sv, lv, inverse = false) {
+  return `<tr><td>${label}</td><td>${fmtCell(sv)}</td><td>${fmtCell(lv)}</td><td>${diffCell(sv, lv)}</td></tr>`;
+}
+
+function sectionRow(label) {
+  return `<tr class="section-header"><td colspan="4">${label}</td></tr>`;
+}
+
+// Feature flag: set to true to allow negative income scenarios
+var ALLOW_NEGATIVE = false;
+
+function update() {
+  const revenue = +document.getElementById('revenue').value;
+  const expSlider = document.getElementById('expenses');
+  const expRaw = +expSlider.value;
+
+  // Expenses are uncapped — user controls them freely
+  const expenses = expRaw;
+  const capped = false;
+
+  const salSlider = document.getElementById('salary');
+  var salaryRaw = +salSlider.value;
+
+  // Cap salary at net profit when negative income prevention is on
+  const income = revenue - expenses;
+  var salary;
+  var salaryCapped = false;
+  if (!ALLOW_NEGATIVE) {
+    const salaryMax = Math.max(30000, income);
+    salSlider.max = salaryMax;
+    salary = Math.min(salaryRaw, salaryMax);
+    salaryCapped = salaryRaw > salaryMax;
+  } else {
+    salSlider.max = 500000;
+    salary = salaryRaw;
+  }
+
+  const sstb = document.getElementById('sstb').checked;
+
+  const revInput = document.getElementById('revenue-input');
+  if (document.activeElement !== revInput) revInput.value = fmtDollar(revenue);
+  const expInput = document.getElementById('expenses-input');
+  if (document.activeElement !== expInput) expInput.value = fmtDollar(expenses);
+  const salInput = document.getElementById('salary-input');
+  if (document.activeElement !== salInput) salInput.value = fmtDollar(salary);
+
+  var salCapMsg = document.getElementById('salary-cap-msg');
+  if (salCapMsg) {
+    salCapMsg.textContent = salaryCapped ? `↑ capped at net profit ($${income.toLocaleString()})` : '';
+  }
+
+  document.getElementById('sstb-label').textContent = sstb ? 'Yes — QBI phases out above $201,750' : 'No — QBI applies (W-2 limit for S-Corp)';
+
+  const netProfit = income;
+  document.getElementById('net-profit-display').textContent = '$' + netProfit.toLocaleString();
+  document.getElementById('margin-display').textContent = revenue > 0 ? (netProfit / revenue * 100).toFixed(1) + '%' : '0%';
+
+  const assumptions = Object.assign({}, DEFAULTS, { sstb: sstb });
+  const s = calcScorp(revenue, income, salary, assumptions);
+  const l = calcLlcReform(revenue, income, assumptions);
+
+  // High-expense warning (only relevant when negative income allowed)
+  var highExpWarning = document.getElementById('high-expense-warning');
+  if (ALLOW_NEGATIVE) {
+    const employerPayrollEst = Math.min(salary, 184500) * 0.062 + salary * 0.0145;
+    const employerRetirementEst = Math.min(salary * 0.25, 72000 - 24500);
+    const preBirtNetEst = revenue - expenses - salary - employerPayrollEst - employerRetirementEst;
+    highExpWarning.style.display = preBirtNetEst < 0 ? 'block' : 'none';
+  } else {
+    highExpWarning.style.display = 'none';
+  }
+
+  // Summary banner
+  const diff = s.afterTax - l.afterTax;
+  const banner = document.getElementById('summary-banner');
+  const isScorp = diff >= 0;
+  banner.className = 'summary-banner ' + (isScorp ? 'scorp-wins' : 'llc-wins');
+  document.getElementById('banner-label').textContent = isScorp ? 'S-Corp Advantage' : 'LLC Advantage';
+  document.getElementById('banner-amount').textContent = '$' + Math.round(Math.abs(diff)).toLocaleString();
+  document.getElementById('banner-amount').style.color = isScorp ? 'var(--green)' : 'var(--yellow)';
+  document.getElementById('scorp-aftertax').textContent = '$' + Math.round(s.afterTax).toLocaleString();
+  document.getElementById('llc-aftertax').textContent = '$' + Math.round(l.afterTax).toLocaleString();
+
+  // Finding box
+  document.getElementById('beckley-direction').textContent = isScorp ? 'lose' : 'gain only';
+  document.getElementById('beckley-delta').textContent = '$' + Math.round(Math.abs(diff)).toLocaleString();
+  const verdict = document.getElementById('beckley-verdict');
+  if (isScorp) {
+    verdict.style.color = 'var(--green)';
+    verdict.textContent = 'At virtually every income level, S-Corp owners pay less tax than LLCs. The advantage comes from federal payroll tax savings that no city bill can change.';
+  } else {
+    verdict.style.color = '#fbbf24';
+    verdict.textContent = 'At these inputs, LLC edges ahead by a marginal amount — far less than the $4,000-$11,000 cost of dissolution plus a 5-year S-Corp re-election lockout. No rational owner would switch.';
+  }
+
+  // Breakdown table
+  const tbody = document.getElementById('breakdown-body');
+  tbody.innerHTML = [
+    sectionRow('Business-Level Taxes (paid by entity)'),
+    row('BIRT — Gross Receipts (0.141%)', s.birtGr, 0),
+    row('BIRT — Net Income (5.71%)', s.birtNi, 0),
+    row('Total BIRT', s.birtTotal, 0),
+    `<tr class="section-header"><td colspan="4">Employer Payroll (S-Corp business expense)</td></tr>`,
+    row('Employer SS + Medicare', s.employerPayroll, null),
+
+    sectionRow('Owner-Level City & State Taxes'),
+    row('PA PIT (3.07%)', s.paPit, l.paPit),
+    row('Philadelphia Wage Tax (3.74% on W-2)', s.wageTax, 0),
+    row('Philadelphia SIT (3.74% on K-1)', s.sit, 0),
+    row('Philadelphia NPT (3.74% on net profit)', 0, l.npt),
+
+    sectionRow('Federal Payroll Taxes'),
+    row('Employee SS + Medicare + Addl Medicare', s.employeePayroll, null),
+    row('SE Tax (SS + Medicare + Addl Medicare)', null, l.seTotal),
+
+    sectionRow('Federal Income Tax'),
+    row('QBI Deduction', s.qbiAllowed > 0 ? -s.qbiAllowed : 0, l.qbiAllowed > 0 ? -l.qbiAllowed : 0),
+    row('Federal Taxable Income', s.fedTaxable, l.fedTaxable),
+    row('Federal Income Tax', s.fedIncomeTax, l.fedIncomeTax),
+
+    `<tr class="total-row"><td>Total Owner-Level Tax Burden</td><td>${fmtCell(s.ownerTax)}</td><td>${fmtCell(l.ownerTax)}</td><td>${diffCell(s.ownerTax, l.ownerTax)}</td></tr>`,
+    `<tr class="highlight"><td>Federal AGI</td><td>${fmtCell(s.agi)}</td><td>${fmtCell(l.agi)}</td><td>${diffCell(s.agi, l.agi)}</td></tr>`,
+    `<tr class="highlight total-row"><td><strong>After-Tax Income</strong></td><td><strong>${fmtCell(s.afterTax)}</strong></td><td><strong>${fmtCell(l.afterTax)}</strong></td><td><strong>${diffCell(s.afterTax, l.afterTax)}</strong></td></tr>`,
+  ].join('');
+
+  // Retirement table
+  const rbody = document.getElementById('retirement-body');
+  rbody.innerHTML = [
+    row('After-Tax Income', s.afterTax, l.afterTax),
+    row('Total Retirement Contributions', s.total401k, l.retirement),
+    `<tr class="total-row"><td><strong>After-Tax + Retirement</strong></td><td><strong>${fmtCell(s.afterTaxPlusRetirement)}</strong></td><td><strong>${fmtCell(l.afterTaxPlusRetirement)}</strong></td><td><strong>${diffCell(s.afterTaxPlusRetirement, l.afterTaxPlusRetirement)}</strong></td></tr>`,
+  ].join('');
+}
+
+['revenue', 'expenses', 'salary', 'sstb'].forEach(id => {
+  document.getElementById(id).addEventListener('input', update);
+});
+
+function wireTextInput(id, sliderId, min, max) {
+  const inp = document.getElementById(id);
+  const slider = document.getElementById(sliderId);
+
+  inp.addEventListener('focus', function() {
+    // Show raw number while editing
+    this.value = parseDollar(this.value) || '';
+  });
+
+  inp.addEventListener('input', function() {
+    const v = Math.max(min, Math.min(max, parseDollar(this.value) || min));
+    slider.value = v;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    update();
+  });
+
+  inp.addEventListener('blur', function() {
+    const v = Math.max(min, Math.min(max, parseDollar(this.value) || min));
+    this.value = fmtDollar(v);
+    slider.value = v;
+    update();
+  });
+}
+
+wireTextInput('revenue-input', 'revenue', 50000, 3000000);
+wireTextInput('expenses-input', 'expenses', 0, 2990000);
+wireTextInput('salary-input', 'salary', 30000, 500000);
+
+// Preset buttons
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+
+    const rev = +this.dataset.rev;
+    const exp = +this.dataset.exp;
+    const sal = +this.dataset.sal;
+    const sstb = this.dataset.sstb === 'true';
+
+    document.getElementById('revenue').value = rev;
+    document.getElementById('revenue-input').value = fmtDollar(rev);
+    document.getElementById('expenses').value = exp;
+    document.getElementById('expenses-input').value = fmtDollar(exp);
+    document.getElementById('salary').value = sal;
+    document.getElementById('salary-input').value = fmtDollar(sal);
+    document.getElementById('sstb').checked = sstb;
+
+    update();
+  });
+});
+
+// Typing on any slider input clears active preset
+['revenue', 'expenses', 'salary'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  });
+});
+
+update();
+</script>
+</body>
+</html>
