@@ -4,6 +4,8 @@
 
 **[Live Simulator](https://liftphilly.org/simulator/)**
 
+![Unintended Consequences Simulator](screenshot.png)
+
 ## What it does
 
 Compares the total tax burden (federal, state, and city) for S-Corp owners vs single-member LLCs across a wide range of income levels. Users can adjust gross revenue, operating expenses, and S-Corp W-2 salary to see a full side-by-side tax breakdown in real time.
